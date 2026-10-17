@@ -112,39 +112,8 @@ resource "azurerm_data_factory_pipeline" "pl_ieso_bronze_to_silver" {
   name            = "pl_ieso_bronze_to_silver"
   data_factory_id = azurerm_data_factory.adf.id
 
-  activities_json = jsonencode([
-    {
-      name      = "CheckBronzeFileExists"
-      type      = "GetMetadata"
-      dependsOn = []
-      policy = {
-        timeout                = "0.00:10:00"
-        retry                  = 1
-        retryIntervalInSeconds = 30
-        secureOutput           = false
-        secureInput            = false
-      }
-      userProperties = []
-      typeProperties = {
-        dataset = {
-          referenceName = "ds_bronze_ieso_xml"
-          type          = "DatasetReference"
-        }
-        fieldList = [
-          "exists",
-          "size",
-          "itemName"
-        ]
-        storeSettings = {
-          type      = "AzureBlobFSReadSettings"
-          recursive = false
-        }
-        formatSettings = {
-          type = "XmlReadSettings"
-        }
-      }
-    }
-  ])
+  # Clean pipeline skeleton: activities will be authored in ADF Studio in Phase 4
+  activities_json = jsonencode([])
 
   depends_on = [
     azurerm_data_factory_linked_service_data_lake_storage_gen2.ls_adls_gen2
