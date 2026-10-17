@@ -1,0 +1,11 @@
+project_name = "ieso-integration"
+environment  = "dev"
+location     = "canadacentral"
+
+tags = {
+  Project     = "IESO Power Generation Integration"
+  Owner       = "Data & Integration Developer"
+  Sector      = "Nuclear Engineering - CANDU"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}

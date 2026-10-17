@@ -1,0 +1,90 @@
+name: "Terraform Azure Infrastructure CI/CD"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to execute'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  id-token: write   # Required for Azure OIDC Federated Credentials
+  contents: read    # Required to checkout the repository
+  pull-requests: write # Allows posting Terraform plan comments on PRs
+
+jobs:
+  terraform:
+    name: "Terraform Lint, Plan & Deploy"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+          terraform_wrapper: true
+
+      # Step 3: Check Terraform formatting
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check
+
+      # Step 4: Initialize Terraform working directory
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      # Step 5: Validate Terraform syntax and configuration
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      # Step 6: Generate speculative execution plan
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color -out=tfplan
+        continue-on-error: false
+
+      # Step 7: Apply infrastructure changes
+      # Only runs when pushed to main branch OR manually triggered with action == 'apply'
+      - name: Terraform Apply
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+        run: terraform apply -auto-approve tfplan
+
+      # Step 8: Optional manual destroy (only via explicit workflow_dispatch)
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
