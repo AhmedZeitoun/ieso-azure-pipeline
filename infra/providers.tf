@@ -10,6 +10,13 @@ terraform {
       version = "~> 3.5"
     }
   }
+
+  backend "azurerm" {
+    resource_group_name  = "rg-ieso-tfstate"
+    storage_account_name = "stiesotfstate23550"
+    container_name       = "tfstate"
+    key                  = "ieso-pipeline.tfstate"
+  }
 }
 
 provider "azurerm" {

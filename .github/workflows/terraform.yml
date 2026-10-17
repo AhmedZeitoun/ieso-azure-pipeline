@@ -69,13 +69,13 @@ jobs:
       # Step 5: Validate Terraform syntax and configuration
       - name: Terraform Validate
         id: validate
-        run: terraform validate -no-color
+        run: terraform validate
 
       # Step 6: Generate speculative execution plan
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -no-color -out=tfplan
+          terraform plan -out=tfplan
         continue-on-error: false
 
       # Step 7: Apply infrastructure changes
