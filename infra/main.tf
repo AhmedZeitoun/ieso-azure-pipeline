@@ -8,7 +8,7 @@ resource "random_string" "suffix" {
 }
 
 locals {
-  name_prefix          = "${var.project_name}-${var.environment}"
+  name_prefix = "${var.project_name}-${var.environment}"
   # Storage accounts allow only alphanumeric lowercase, max 24 chars
   storage_account_name = substr("adlsieso${var.environment}${random_string.suffix.result}", 0, 24)
 }
@@ -26,14 +26,14 @@ resource "azurerm_resource_group" "rg" {
 # 2. Azure Data Lake Storage Gen2 (StorageV2 with Hierarchical Namespace enabled)
 # ---------------------------------------------------------------------------------------------------------------------
 resource "azurerm_storage_account" "adls" {
-  name                     = local.storage_account_name
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  is_hns_enabled           = true # Critical: Enables ADLS Gen2 Hierarchical Namespace for ACID Delta Lake
-  min_tls_version          = "TLS1_2"
+  name                            = local.storage_account_name
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  account_kind                    = "StorageV2"
+  is_hns_enabled                  = true # Critical: Enables ADLS Gen2 Hierarchical Namespace for ACID Delta Lake
+  min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
   tags = var.tags
@@ -95,10 +95,10 @@ resource "azurerm_role_assignment" "adf_storage_blob_data_contributor" {
 # 6. ADF Linked Service: ADLS Gen2 connection via Managed Identity (Keyless, Zero-Trust)
 # ---------------------------------------------------------------------------------------------------------------------
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "ls_adls_gen2" {
-  name                  = "ls_adls_gen2"
-  data_factory_id       = azurerm_data_factory.adf.id
-  url                   = azurerm_storage_account.adls.primary_dfs_endpoint
-  use_managed_identity  = true
+  name                 = "ls_adls_gen2"
+  data_factory_id      = azurerm_data_factory.adf.id
+  url                  = azurerm_storage_account.adls.primary_dfs_endpoint
+  use_managed_identity = true
 
   depends_on = [
     azurerm_role_assignment.adf_storage_blob_data_contributor
@@ -114,8 +114,8 @@ resource "azurerm_data_factory_pipeline" "pl_ieso_bronze_to_silver" {
 
   activities_json = jsonencode([
     {
-      name = "CheckBronzeFileExists"
-      type = "GetMetadata"
+      name      = "CheckBronzeFileExists"
+      type      = "GetMetadata"
       dependsOn = []
       policy = {
         timeout                = "0.00:10:00"
