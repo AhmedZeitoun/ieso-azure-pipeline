@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Data & Large files
+*.xml
+*.csv
+*.parquet
+data/
+
+# Secrets / Cloud credentials / Azure configs
+.env
+local.settings.json
+*.pem
+*.key
+.azure/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
