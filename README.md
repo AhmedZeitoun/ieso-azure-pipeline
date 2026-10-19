@@ -72,6 +72,15 @@ All Azure cloud infrastructure—including Resource Groups, Storage Accounts, co
 
 ---
 
+### 🔄 Collaborative Git Integration (Version Control & CI/CD)
+
+Azure Data Factory is natively connected directly to this GitHub repository under `/adf`:
+- **Real-Time Tracking**: Every change made in ADF Studio commits and pushes directly to the `main` branch, versioning all ETL logic automatically.
+- **Team Collaboration**: Enables branch-based development, pull request code reviews, and safe team iteration without editing directly in production "Live Mode".
+- **Clean Monorepo Design**: Scoped strictly to the `/adf` root folder, keeping Data Factory definitions isolated from Terraform infrastructure and dashboard assets.
+
+---
+
 ### 📂 Repository Structure
 
 ```text
