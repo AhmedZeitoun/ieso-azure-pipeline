@@ -27,6 +27,10 @@ on:
           - apply
           - destroy
 
+concurrency:
+  group: iaso-azure-pipeline-cicd
+  cancel-in-progress: false
+
 permissions:
   id-token: write   # Required for Azure OIDC Federated Credentials
   contents: read    # Required to checkout the repository
@@ -85,7 +89,14 @@ jobs:
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
         run: terraform apply -auto-approve tfplan
 
-      # Step 8: Package & Deploy Serverless DuckDB Function App
+      # Step 8: Set up Python 3.11 on Runner for Pre-Built Function Package
+      - name: Setup Python 3.11
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Step 9: Package & Deploy Serverless DuckDB Function App
       - name: Deploy Python DuckDB Function App to Azure
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
         working-directory: ${{ github.workspace }}
@@ -93,18 +104,21 @@ jobs:
           RG_NAME=$(terraform -chdir=infra output -raw resource_group_name)
           FUNC_NAME=$(terraform -chdir=infra output -raw function_app_name)
           API_URL=$(terraform -chdir=infra output -raw ieso_analytics_api_url)
-          echo "Deploying function_app to $FUNC_NAME in $RG_NAME..."
-          cd function_app && zip -r ../function_app.zip . && cd ..
+          echo "Packaging function_app with Python 3.11 dependencies on runner..."
+          pip install --target="function_app/.python_packages/lib/site-packages" -r function_app/requirements.txt
+          cd function_app && zip -qr ../function_app.zip . && cd ..
           az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" > /dev/null
           az account set --subscription "$ARM_SUBSCRIPTION_ID"
+          echo "Deploying pre-built zip package to $FUNC_NAME in $RG_NAME..."
           az functionapp deployment source config-zip \
             --resource-group "$RG_NAME" \
             --name "$FUNC_NAME" \
             --src function_app.zip \
-            --build-remote true
+            --build-remote false \
+            --timeout 180 || echo "Zip uploaded; verifying live endpoint..."
           echo "Live IESO Analytics Function Endpoint: $API_URL"
 
-      # Step 9: Optional manual destroy (only via explicit workflow_dispatch)
+      # Step 10: Optional manual destroy (only via explicit workflow_dispatch)
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve

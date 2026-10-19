@@ -181,8 +181,8 @@ resource "azurerm_linux_function_app" "api" {
     "AZURE_STORAGE_CONTAINER"        = azurerm_storage_data_lake_gen2_filesystem.silver.name
     "AZURE_DELTA_TABLE_PATH"         = "ieso_generation"
     "AZURE_STORAGE_KEY"              = azurerm_storage_account.adls.primary_access_key
-    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
-    "ENABLE_ORYX_BUILD"              = "true"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "false"
+    "ENABLE_ORYX_BUILD"              = "false"
   }
 
   tags = var.tags
