@@ -116,11 +116,11 @@ resource "azurerm_data_factory_pipeline" "pl_ieso_bronze_to_silver" {
   name            = "pl_ieso_bronze_to_silver"
   data_factory_id = azurerm_data_factory.adf.id
 
-  # Clean pipeline skeleton: activities will be authored in ADF Studio in Phase 4
+  # Clean pipeline skeleton: activities and parameters are managed in ADF Studio (/adf)
   activities_json = jsonencode([])
 
   lifecycle {
-    ignore_changes = [activities_json]
+    ignore_changes = all
   }
 
   depends_on = [
