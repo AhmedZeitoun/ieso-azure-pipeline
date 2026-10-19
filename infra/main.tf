@@ -183,9 +183,3 @@ resource "azurerm_linux_function_app" "api" {
 
   tags = var.tags
 }
-
-resource "azurerm_role_assignment" "func_storage_blob_data_reader" {
-  scope                = azurerm_storage_account.adls.id
-  role_definition_name = "Storage Blob Data Reader"
-  principal_id         = azurerm_linux_function_app.api.identity[0].principal_id
-}
