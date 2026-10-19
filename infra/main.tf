@@ -79,6 +79,10 @@ resource "azurerm_data_factory" "adf" {
     type = "SystemAssigned"
   }
 
+  lifecycle {
+    ignore_changes = [github_configuration, vsts_configuration]
+  }
+
   tags = var.tags
 }
 
