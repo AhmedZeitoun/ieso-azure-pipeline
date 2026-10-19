@@ -1,0 +1,32 @@
+{
+  "etag": "05066d68-0000-0a00-0000-6ad467a70000",
+  "id": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.DataFactory/factories/adf-ieso-integration-dev/datasets/ds_bronze_ieso_xml",
+  "name": "ds_bronze_ieso_xml",
+  "properties": {
+    "additionalProperties": null,
+    "annotations": [],
+    "compression": null,
+    "description": null,
+    "encodingName": null,
+    "folder": null,
+    "linkedServiceName": {
+      "parameters": null,
+      "referenceName": "ls_adls_gen2",
+      "type": "LinkedServiceReference"
+    },
+    "location": {
+      "additionalProperties": null,
+      "fileName": null,
+      "fileSystem": "bronze",
+      "folderPath": "ieso_raw",
+      "type": "AzureBlobFSLocation"
+    },
+    "nullValue": null,
+    "parameters": null,
+    "schema": null,
+    "structure": null,
+    "type": "Xml"
+  },
+  "resourceGroup": "rg-ieso-integration-dev",
+  "type": "Microsoft.DataFactory/factories/datasets"
+}

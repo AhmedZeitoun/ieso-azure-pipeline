@@ -1,0 +1,28 @@
+{
+  "etag": "2704c589-0000-0a00-0000-6ad2f7b20000",
+  "id": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.DataFactory/factories/adf-ieso-integration-dev/linkedservices/ls_adls_gen2",
+  "name": "ls_adls_gen2",
+  "properties": {
+    "accountKey": null,
+    "additionalProperties": null,
+    "annotations": null,
+    "azureCloudType": null,
+    "connectVia": null,
+    "credential": null,
+    "description": "",
+    "encryptedCredential": null,
+    "parameters": null,
+    "sasToken": null,
+    "sasUri": null,
+    "servicePrincipalCredential": null,
+    "servicePrincipalCredentialType": null,
+    "servicePrincipalId": null,
+    "servicePrincipalKey": null,
+    "tenant": null,
+    "type": "AzureBlobFS",
+    "url": "https://adlsiesodeve3qhu9.dfs.core.windows.net/",
+    "version": null
+  },
+  "resourceGroup": "rg-ieso-integration-dev",
+  "type": "Microsoft.DataFactory/factories/linkedservices"
+}

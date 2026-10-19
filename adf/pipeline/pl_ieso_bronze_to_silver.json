@@ -1,0 +1,61 @@
+{
+  "activities": [
+    {
+      "additionalProperties": null,
+      "compute": {
+        "computeType": "General",
+        "coreCount": 8
+      },
+      "continuationSettings": null,
+      "continueOnError": null,
+      "dataFlow": null,
+      "dependsOn": [],
+      "description": null,
+      "integrationRuntime": null,
+      "linkedServiceName": null,
+      "name": "TransformXmlToDeltaSilver",
+      "onInactiveMarkAs": null,
+      "policy": {
+        "additionalProperties": null,
+        "retry": 0,
+        "retryIntervalInSeconds": 30,
+        "secureInput": false,
+        "secureOutput": false,
+        "timeout": "0.12:00:00"
+      },
+      "runConcurrently": null,
+      "sourceStagingConcurrency": null,
+      "staging": {
+        "folderPath": null,
+        "linkedService": null
+      },
+      "state": null,
+      "traceLevel": "Fine",
+      "type": "ExecuteDataFlow",
+      "userProperties": []
+    }
+  ],
+  "additionalProperties": null,
+  "annotations": [],
+  "concurrency": null,
+  "description": null,
+  "etag": "c004aac3-0000-0a00-0000-6ad54fb40000",
+  "folder": null,
+  "id": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.DataFactory/factories/adf-ieso-integration-dev/pipelines/pl_ieso_bronze_to_silver",
+  "name": "pl_ieso_bronze_to_silver",
+  "parameters": {
+    "fileName": {
+      "defaultValue": "ieso_hourly_*.xml",
+      "type": "string"
+    }
+  },
+  "policy": {
+    "elapsedTimeMetric": {
+      "duration": null
+    }
+  },
+  "resourceGroup": "rg-ieso-integration-dev",
+  "runDimensions": null,
+  "type": "Microsoft.DataFactory/factories/pipelines",
+  "variables": null
+}

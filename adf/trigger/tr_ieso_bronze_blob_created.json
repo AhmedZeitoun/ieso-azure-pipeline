@@ -1,0 +1,33 @@
+{
+  "etag": "c0041ec7-0000-0a00-0000-6ad54fbf0000",
+  "id": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.DataFactory/factories/adf-ieso-integration-dev/triggers/tr_ieso_bronze_blob_created",
+  "name": "tr_ieso_bronze_blob_created",
+  "properties": {
+    "additionalProperties": null,
+    "annotations": [],
+    "blobPathBeginsWith": "/bronze/blobs/ieso_raw/daily/",
+    "blobPathEndsWith": ".xml",
+    "description": null,
+    "events": [
+      "Microsoft.Storage.BlobCreated"
+    ],
+    "ignoreEmptyBlobs": true,
+    "pipelines": [
+      {
+        "parameters": {
+          "fileName": "@triggerBody().fileName"
+        },
+        "pipelineReference": {
+          "name": null,
+          "referenceName": "pl_ieso_bronze_to_silver",
+          "type": "PipelineReference"
+        }
+      }
+    ],
+    "runtimeState": "Started",
+    "scope": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.Storage/storageAccounts/adlsiesodeve3qhu9",
+    "type": "BlobEventsTrigger"
+  },
+  "resourceGroup": "rg-ieso-integration-dev",
+  "type": "Microsoft.DataFactory/factories/triggers"
+}
