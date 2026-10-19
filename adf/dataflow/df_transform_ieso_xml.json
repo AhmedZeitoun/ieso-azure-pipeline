@@ -1,169 +1,124 @@
 {
-  "etag": "d104e75e-0000-0a00-0000-6ad562de0000",
-  "id": "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.DataFactory/factories/adf-ieso-integration-dev/dataflows/df_transform_ieso_xml",
   "name": "df_transform_ieso_xml",
   "properties": {
-    "annotations": null,
-    "description": null,
-    "folder": null,
-    "script": null,
-    "scriptLines": [
-      "parameters{",
-      "     inputFileName as string",
-      "}",
-      "source(output(",
-      "          {http://www.ieso.ca/schema,Document} as ({@docID} as string, {http://www.ieso.ca/schema,DocBody} as ({http://www.ieso.ca/schema,DailyData} as ({http://www.ieso.ca/schema,Day} as date, {http://www.ieso.ca/schema,HourlyData} as ({http://www.ieso.ca/schema,FuelTotal} as ({http://www.ieso.ca/schema,EnergyValue} as ({http://www.ieso.ca/schema,Output} as short, {http://www.ieso.ca/schema,OutputQuality} as short), {http://www.ieso.ca/schema,Fuel} as string)[], {http://www.ieso.ca/schema,Hour} as short)[])[], {http://www.ieso.ca/schema,DeliveryYear} as short), {http://www.ieso.ca/schema,DocHeader} as ({http://www.ieso.ca/schema,CreatedAt} as string, {http://www.ieso.ca/schema,DocConfidentiality} as ({http://www.ieso.ca/schema,DocConfClass} as string), {http://www.ieso.ca/schema,DocRevision} as boolean, {http://www.ieso.ca/schema,DocTitle} as string))",
-      "     ),",
-      "     allowSchemaDrift: true,",
-      "     validateSchema: false,",
-      "     ignoreNoFilesFound: false,",
-      "     validationMode: 'none',",
-      "     namespaces: true,",
-      "     wildcardPaths:[(concat('ieso_raw/daily/', $inputFileName))]) ~> SourceXml",
-      "SourceXml foldDown(unroll({http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}),",
-      "     mapColumn(",
-      "          Day = {http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}.{http://www.ieso.ca/schema,Day},",
-      "          HourlyData = {http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}.{http://www.ieso.ca/schema,HourlyData}",
-      "     ),",
-      "     skipDuplicateMapInputs: false,",
-      "     skipDuplicateMapOutputs: false) ~> FlattenDaily",
-      "FlattenDaily foldDown(unroll(HourlyData),",
-      "     mapColumn(",
-      "          Day,",
-      "          Hour = HourlyData.{http://www.ieso.ca/schema,Hour},",
-      "          FuelTotal = HourlyData.{http://www.ieso.ca/schema,FuelTotal}",
-      "     ),",
-      "     skipDuplicateMapInputs: false,",
-      "     skipDuplicateMapOutputs: false) ~> FlattenHourly",
-      "FlattenHourly foldDown(unroll(FuelTotal, FuelTotal),",
-      "     mapColumn(",
-      "          Date = Day,",
-      "          Hour,",
-      "          Fuel = FuelTotal.{http://www.ieso.ca/schema,Fuel},",
-      "          RawOutput = FuelTotal.{http://www.ieso.ca/schema,EnergyValue}.{http://www.ieso.ca/schema,Output},",
-      "          Quality = FuelTotal.{http://www.ieso.ca/schema,EnergyValue}.{http://www.ieso.ca/schema,OutputQuality}",
-      "     ),",
-      "     skipDuplicateMapInputs: false,",
-      "     skipDuplicateMapOutputs: false) ~> FlattenFuel",
-      "FlattenFuel derive(OutputMW = toDecimal(RawOutput, 10, 2),",
-      "          Hour = toInteger(Hour),",
-      "          FuelType = upper(toString(Fuel)),",
-      "          Timestamp = toTimestamp(concat(toString(Date), ' ', lpad(toString(Hour - 1), 2, '0'), ':00:00'), 'yyyy-MM-dd HH:mm:ss')\r",
-      ") ~> DerivedColumns",
-      "DerivedColumns assert(expectTrue(OutputMW >= 0, false, 'assert_non_negative_mw')) ~> QualityAssertion",
-      "DeduplicateKeys alterRow(upsertIf(true())) ~> AlterRowForUpsert",
-      "QualityAssertion aggregate(groupBy(Date,",
-      "          Hour,",
-      "          FuelType),",
-      "     OutputMW = last(OutputMW),",
-      "          Timestamp = last(Timestamp),",
-      "          Quality = last(Quality)) ~> DeduplicateKeys",
-      "AlterRowForUpsert sink(allowSchemaDrift: true,",
-      "     validateSchema: false,",
-      "     format: 'delta',",
-      "     fileSystem: 'silver',",
-      "     folderPath: 'ieso_generation',",
-      "     mergeSchema: false,",
-      "     autoCompact: true,",
-      "     optimizedWrite: true,",
-      "     vacuum: 0,",
-      "     deletable: false,",
-      "     insertable: false,",
-      "     updateable: false,",
-      "     upsertable: true,",
-      "     keys:['Date','Hour','FuelType'],",
-      "     umask: 0022,",
-      "     preCommands: [],",
-      "     postCommands: [],",
-      "     skipDuplicateMapInputs: true,",
-      "     skipDuplicateMapOutputs: true,",
-      "     partitionBy('key',",
-      "          0,",
-      "          FuelType",
-      "     )) ~> SinkSilverDelta"
-    ],
-    "sinks": [
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": {
-          "parameters": null,
-          "referenceName": "ls_adls_gen2",
-          "type": "LinkedServiceReference"
+    "type": "MappingDataFlow",
+    "typeProperties": {
+      "sources": [
+        {
+          "dataset": {
+            "referenceName": "ds_bronze_ieso_xml",
+            "type": "DatasetReference"
+          },
+          "name": "SourceXml"
+        }
+      ],
+      "sinks": [
+        {
+          "linkedService": {
+            "referenceName": "ls_adls_gen2",
+            "type": "LinkedServiceReference"
+          },
+          "name": "SinkSilverDelta"
+        }
+      ],
+      "transformations": [
+        {
+          "name": "FlattenDaily"
         },
-        "name": "SinkSilverDelta",
-        "rejectedDataLinkedService": null,
-        "schemaLinkedService": null
-      }
-    ],
-    "sources": [
-      {
-        "dataset": {
-          "parameters": null,
-          "referenceName": "ds_bronze_ieso_xml",
-          "type": "DatasetReference"
+        {
+          "name": "FlattenHourly"
         },
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "SourceXml",
-        "schemaLinkedService": null
-      }
-    ],
-    "transformations": [
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "FlattenDaily"
-      },
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "FlattenHourly"
-      },
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "FlattenFuel"
-      },
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "DerivedColumns"
-      },
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "QualityAssertion"
-      },
-      {
-        "dataset": null,
-        "description": "Add expressions to alter rows",
-        "flowlet": null,
-        "linkedService": null,
-        "name": "AlterRowForUpsert"
-      },
-      {
-        "dataset": null,
-        "description": null,
-        "flowlet": null,
-        "linkedService": null,
-        "name": "DeduplicateKeys"
-      }
-    ],
-    "type": "MappingDataFlow"
-  },
-  "resourceGroup": "rg-ieso-integration-dev",
-  "type": "Microsoft.DataFactory/factories/dataflows"
+        {
+          "name": "FlattenFuel"
+        },
+        {
+          "name": "DerivedColumns"
+        },
+        {
+          "name": "QualityAssertion"
+        },
+        {
+          "name": "AlterRowForUpsert"
+        },
+        {
+          "name": "DeduplicateKeys"
+        }
+      ],
+      "scriptLines": [
+        "parameters{",
+        "     inputFileName as string",
+        "}",
+        "source(output(",
+        "          {http://www.ieso.ca/schema,Document} as ({@docID} as string, {http://www.ieso.ca/schema,DocBody} as ({http://www.ieso.ca/schema,DailyData} as ({http://www.ieso.ca/schema,Day} as date, {http://www.ieso.ca/schema,HourlyData} as ({http://www.ieso.ca/schema,FuelTotal} as ({http://www.ieso.ca/schema,EnergyValue} as ({http://www.ieso.ca/schema,Output} as short, {http://www.ieso.ca/schema,OutputQuality} as short), {http://www.ieso.ca/schema,Fuel} as string)[], {http://www.ieso.ca/schema,Hour} as short)[])[], {http://www.ieso.ca/schema,DeliveryYear} as short), {http://www.ieso.ca/schema,DocHeader} as ({http://www.ieso.ca/schema,CreatedAt} as string, {http://www.ieso.ca/schema,DocConfidentiality} as ({http://www.ieso.ca/schema,DocConfClass} as string), {http://www.ieso.ca/schema,DocRevision} as boolean, {http://www.ieso.ca/schema,DocTitle} as string))",
+        "     ),",
+        "     allowSchemaDrift: true,",
+        "     validateSchema: false,",
+        "     ignoreNoFilesFound: false,",
+        "     validationMode: 'none',",
+        "     namespaces: true,",
+        "     wildcardPaths:[(concat('ieso_raw/daily/', $inputFileName))]) ~> SourceXml",
+        "SourceXml foldDown(unroll({http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}),",
+        "     mapColumn(",
+        "          Day = {http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}.{http://www.ieso.ca/schema,Day},",
+        "          HourlyData = {http://www.ieso.ca/schema,Document}.{http://www.ieso.ca/schema,DocBody}.{http://www.ieso.ca/schema,DailyData}.{http://www.ieso.ca/schema,HourlyData}",
+        "     ),",
+        "     skipDuplicateMapInputs: false,",
+        "     skipDuplicateMapOutputs: false) ~> FlattenDaily",
+        "FlattenDaily foldDown(unroll(HourlyData),",
+        "     mapColumn(",
+        "          Day,",
+        "          Hour = HourlyData.{http://www.ieso.ca/schema,Hour},",
+        "          FuelTotal = HourlyData.{http://www.ieso.ca/schema,FuelTotal}",
+        "     ),",
+        "     skipDuplicateMapInputs: false,",
+        "     skipDuplicateMapOutputs: false) ~> FlattenHourly",
+        "FlattenHourly foldDown(unroll(FuelTotal, FuelTotal),",
+        "     mapColumn(",
+        "          Date = Day,",
+        "          Hour,",
+        "          Fuel = FuelTotal.{http://www.ieso.ca/schema,Fuel},",
+        "          RawOutput = FuelTotal.{http://www.ieso.ca/schema,EnergyValue}.{http://www.ieso.ca/schema,Output},",
+        "          Quality = FuelTotal.{http://www.ieso.ca/schema,EnergyValue}.{http://www.ieso.ca/schema,OutputQuality}",
+        "     ),",
+        "     skipDuplicateMapInputs: false,",
+        "     skipDuplicateMapOutputs: false) ~> FlattenFuel",
+        "FlattenFuel derive(OutputMW = toDecimal(RawOutput, 10, 2),",
+        "          Hour = toInteger(Hour),",
+        "          FuelType = upper(toString(Fuel)),",
+        "          Timestamp = toTimestamp(concat(toString(Date), ' ', lpad(toString(Hour - 1), 2, '0'), ':00:00'), 'yyyy-MM-dd HH:mm:ss')",
+        ") ~> DerivedColumns",
+        "DerivedColumns assert(expectTrue(OutputMW >= 0, false, 'assert_non_negative_mw')) ~> QualityAssertion",
+        "DeduplicateKeys alterRow(upsertIf(true())) ~> AlterRowForUpsert",
+        "QualityAssertion aggregate(groupBy(Date,",
+        "          Hour,",
+        "          FuelType),",
+        "     OutputMW = last(OutputMW),",
+        "          Timestamp = last(Timestamp),",
+        "          Quality = last(Quality)) ~> DeduplicateKeys",
+        "AlterRowForUpsert sink(allowSchemaDrift: true,",
+        "     validateSchema: false,",
+        "     format: 'delta',",
+        "     fileSystem: 'silver',",
+        "     folderPath: 'ieso_generation',",
+        "     mergeSchema: false,",
+        "     autoCompact: true,",
+        "     optimizedWrite: true,",
+        "     vacuum: 0,",
+        "     deletable: false,",
+        "     insertable: false,",
+        "     updateable: false,",
+        "     upsertable: true,",
+        "     keys:['Date','Hour','FuelType'],",
+        "     umask: 0022,",
+        "     preCommands: [],",
+        "     postCommands: [],",
+        "     skipDuplicateMapInputs: true,",
+        "     skipDuplicateMapOutputs: true,",
+        "     partitionBy('key',",
+        "          0,",
+        "          FuelType",
+        "     )) ~> SinkSilverDelta"
+      ]
+    }
+  }
 }
