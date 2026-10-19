@@ -187,3 +187,29 @@ resource "azurerm_linux_function_app" "api" {
 
   tags = var.tags
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# 9. Azure Logic App (Consumption): Scheduled HTTP XML Polling to ADLS Gen2 Bronze
+# ---------------------------------------------------------------------------------------------------------------------
+import {
+  to = azurerm_logic_app_workflow.ieso_ingest
+  id = "/subscriptions/9c4bbe56-59bf-41b0-b122-a719f2cabcdf/resourceGroups/rg-ieso-integration-dev/providers/Microsoft.Logic/workflows/logic-ieso-ingest-dev"
+}
+
+resource "azurerm_logic_app_workflow" "ieso_ingest" {
+  name                = "logic-ieso-ingest-${var.environment}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  enabled             = true
+
+  # Workflow actions & API connections are defined in /logic_app/workflow.json
+  lifecycle {
+    ignore_changes = [
+      parameters,
+      workflow_parameters,
+      tags,
+    ]
+  }
+}
+
+

@@ -42,3 +42,9 @@ output "ieso_analytics_api_url" {
   description = "Public endpoint for the DuckDB IESO Lakehouse Analytics API"
   value       = "https://${azurerm_linux_function_app.api.default_hostname}/api/ieso-analytics"
 }
+
+output "logic_app_workflow_name" {
+  description = "Name of the scheduled Azure Logic App XML ingestion workflow"
+  value       = azurerm_logic_app_workflow.ieso_ingest.name
+}
+
