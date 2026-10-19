@@ -32,3 +32,13 @@ output "silver_container_name" {
   description = "Silver layer container name"
   value       = azurerm_storage_data_lake_gen2_filesystem.silver.name
 }
+
+output "function_app_name" {
+  description = "Name of the serverless Azure Function App"
+  value       = azurerm_linux_function_app.api.name
+}
+
+output "ieso_analytics_api_url" {
+  description = "Public endpoint for the DuckDB IESO Lakehouse Analytics API"
+  value       = "https://${azurerm_linux_function_app.api.default_hostname}/api/ieso-analytics"
+}

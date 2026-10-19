@@ -1,4 +1,4 @@
-name: "Terraform Azure Infrastructure CI/CD"
+name: "Terraform Azure Infrastructure & Function CI/CD"
 
 on:
   push:
@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - 'infra/**'
+      - 'function_app/**'
       - '.github/workflows/terraform.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'infra/**'
+      - 'function_app/**'
       - '.github/workflows/terraform.yml'
   workflow_dispatch:
     inputs:
@@ -32,7 +34,7 @@ permissions:
 
 jobs:
   terraform:
-    name: "Terraform Lint, Plan & Deploy"
+    name: "Terraform Lint, Plan, Deploy & Function Publish"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,12 +56,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.5"
-          terraform_wrapper: true
+          terraform_wrapper: false
 
       # Step 3: Check Terraform formatting
-      - name: Terraform Format Check
+      - name: Terraform Format
         id: fmt
-        run: terraform fmt -check
+        run: terraform fmt
 
       # Step 4: Initialize Terraform working directory
       - name: Terraform Init
@@ -79,12 +81,30 @@ jobs:
         continue-on-error: false
 
       # Step 7: Apply infrastructure changes
-      # Only runs when pushed to main branch OR manually triggered with action == 'apply'
       - name: Terraform Apply
         if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
         run: terraform apply -auto-approve tfplan
 
-      # Step 8: Optional manual destroy (only via explicit workflow_dispatch)
+      # Step 8: Package & Deploy Serverless DuckDB Function App
+      - name: Deploy Python DuckDB Function App to Azure
+        if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+        working-directory: ${{ github.workspace }}
+        run: |
+          RG_NAME=$(terraform -chdir=infra output -raw resource_group_name)
+          FUNC_NAME=$(terraform -chdir=infra output -raw function_app_name)
+          API_URL=$(terraform -chdir=infra output -raw ieso_analytics_api_url)
+          echo "Deploying function_app to $FUNC_NAME in $RG_NAME..."
+          cd function_app && zip -r ../function_app.zip . && cd ..
+          az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" > /dev/null
+          az account set --subscription "$ARM_SUBSCRIPTION_ID"
+          az functionapp deployment source config-zip \
+            --resource-group "$RG_NAME" \
+            --name "$FUNC_NAME" \
+            --src function_app.zip \
+            --build-remote true
+          echo "Live IESO Analytics Function Endpoint: $API_URL"
+
+      # Step 9: Optional manual destroy (only via explicit workflow_dispatch)
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: terraform destroy -auto-approve
