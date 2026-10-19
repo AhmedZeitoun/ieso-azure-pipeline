@@ -17,6 +17,12 @@ ENV/
 *.csv
 *.parquet
 data/
+*.db
+*.duckdb
+*.duckdb.wal
+*.sqlite
+*.sqlite3
+local_db/
 
 # Secrets / Cloud credentials / Azure configs
 .env
